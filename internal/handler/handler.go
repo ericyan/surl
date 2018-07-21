@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/ericyan/surl/internal/shortener"
+	"github.com/ericyan/surl/pkg/kv"
 )
 
 // ShorteningRequest represents a POST /submit request.
@@ -23,11 +24,15 @@ type ShorteningResponse struct {
 
 type handler struct {
 	*shortener.Shortener
+
+	kvstore kv.Store
 }
 
 // New returns a new HTTP API handler.
 func New() http.Handler {
-	return &handler{shortener.New()}
+	kvstore, _ := kv.NewInMemoryStore()
+
+	return &handler{shortener.New(), kvstore}
 }
 
 // ServeHTTP imeplements the http.Handler interface.
@@ -54,7 +59,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		shortURL := h.Shorten(req.URL)
-		// TODO: Keep the result in a datastore.
+		if err := h.kvstore.Put([]byte(shortURL), []byte(req.URL)); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		resp, err := json.Marshal(ShorteningResponse{req.URL, shortURL})
 		if err != nil {
