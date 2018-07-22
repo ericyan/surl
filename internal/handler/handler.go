@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/ericyan/surl/internal/shortener"
 	"github.com/ericyan/surl/pkg/kv"
@@ -38,6 +39,15 @@ func New() http.Handler {
 // ServeHTTP imeplements the http.Handler interface.
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodGet:
+		key := strings.TrimPrefix(r.URL.Path, "/")
+		url, err := h.kvstore.Get([]byte(key))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		http.Redirect(w, r, string(url), http.StatusMovedPermanently)
 	case http.MethodPost:
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {

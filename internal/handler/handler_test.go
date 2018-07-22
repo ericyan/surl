@@ -28,4 +28,28 @@ func TestHandler(t *testing.T) {
 	if string(body) != `{"url":"https://www.example.com/","shorten_url":"M9Yv6VB2"}` {
 		t.Errorf("unexpected response: %s", body)
 	}
+
+	r = httptest.NewRequest("GET", "/M9Yv6VB2", nil)
+	w = httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	resp = w.Result()
+
+	if resp.StatusCode != http.StatusMovedPermanently {
+		t.Errorf("unexpected status code: got %d, want %d", resp.StatusCode, http.StatusMovedPermanently)
+	}
+
+	if url := resp.Header.Get("Location"); url != "https://www.example.com/" {
+		t.Errorf("unexpected redirection url: %s", url)
+	}
+
+	r = httptest.NewRequest("GET", "/not-there", nil)
+	w = httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	resp = w.Result()
+
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("unexpected status code: got %d, want %d", resp.StatusCode, http.StatusNotFound)
+	}
 }
