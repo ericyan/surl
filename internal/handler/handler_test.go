@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ericyan/surl/pkg/kv"
 )
 
 func testHandler(t *testing.T, h http.Handler, r *http.Request, code int, headers map[string]string, body []byte) {
@@ -38,7 +40,8 @@ func testHandler(t *testing.T, h http.Handler, r *http.Request, code int, header
 }
 
 func TestHandler(t *testing.T) {
-	handler := New()
+	store, _ := kv.NewInMemoryStore()
+	handler := New(store)
 
 	postExample := httptest.NewRequest("POST", "/submit", bytes.NewBufferString(`{"url": "https://www.example.com/"}`))
 	testHandler(t, handler, postExample, http.StatusCreated, nil, []byte(`{"url":"https://www.example.com/","shorten_url":"M9Yv6VB2"}`))

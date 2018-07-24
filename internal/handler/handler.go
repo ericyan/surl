@@ -30,9 +30,7 @@ type handler struct {
 }
 
 // New returns a new HTTP API handler.
-func New() http.Handler {
-	kvstore, _ := kv.NewInMemoryStore()
-
+func New(kvstore kv.Store) http.Handler {
 	return &handler{shortener.New(), kvstore}
 }
 

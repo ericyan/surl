@@ -10,7 +10,16 @@ import (
 	"time"
 
 	"github.com/ericyan/surl/internal/handler"
+	"github.com/ericyan/surl/pkg/kv"
 )
+
+func newStore() (kv.Store, error) {
+	if dynamoTable := os.Getenv("SURL_DYNAMODB_TABLE"); dynamoTable != "" {
+		return kv.NewDynamoStore(os.Getenv("SURL_DYNAMODB_ENDPOINT"), dynamoTable)
+	} else {
+		return kv.NewInMemoryStore()
+	}
+}
 
 func main() {
 	addr := os.Getenv("SURL_ADDR")
@@ -18,9 +27,14 @@ func main() {
 		addr = "0.0.0.0:3000"
 	}
 
+	store, err := newStore()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: handler.New(),
+		Handler: handler.New(store),
 	}
 
 	shutdown := make(chan struct{})
