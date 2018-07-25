@@ -1,0 +1,4 @@
+FROM node:alpine
+RUN npm install --no-optional -g dynalite@2.0.0 && npm cache clean --force
+EXPOSE 4567
+CMD dynalite

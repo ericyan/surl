@@ -1,0 +1,17 @@
+version: "3"
+services:
+  server:
+    build: .
+    environment:
+      - SURL_DYNAMODB_ENDPOINT=http://db:4567
+      - SURL_DYNAMODB_TABLE=surl
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=your_access_key_id
+      - AWS_SECRET_ACCESS_KEY=your_secret_access_key
+    ports:
+      - 3000:3000/tcp
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.dynalite
