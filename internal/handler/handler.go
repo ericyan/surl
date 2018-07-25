@@ -3,6 +3,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -38,6 +39,13 @@ func New(kvstore kv.Store) http.Handler {
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		if r.URL.Path == "/" {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(fmt.Sprintf(`Try this: <pre>curl -X POST -H "Content-Type: application/json" -d '{"url": "https://www.example.com/"}' http://%s/submit</pre>`, r.Host)))
+			return
+		}
+
 		key := strings.TrimPrefix(r.URL.Path, "/")
 		url, err := h.kvstore.Get([]byte(key))
 		if err != nil {
