@@ -32,6 +32,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	store, err = kv.NewCachedStore(store)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: handler.New(store),
